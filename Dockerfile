@@ -1,46 +1,40 @@
-FROM wordpress:4.9.6-php7.0-apache
+FROM php:7.3-apache
 
-RUN  apt-get install -y --force-yes --no-install-recommends less libmemcached-dev libxml2-dev libz-dev \
-    && docker-php-ext-install soap \
-    && rm -rf /var/lib/apt/lists/*
+LABEL maintainer="Leanwp Team"
 
-RUN pecl install memcached xdebug \
-    && docker-php-ext-enable memcached xdebug \
-    && rm -rf /tmp/pear/
+ARG DB_HOST
+ARG DB_NAME
+ARG DB_USER
+ARG DB_PASSWORD
 
-RUN { \
-      echo ''; \
-      echo 'xdebug.remote_enable=1'; \
-      echo 'xdebug.remote_port="9000"'; \
-    } >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+ENV APACHE_RUN_USER www-data
+ENV APACHE_RUN_GROUP www-data
+ENV APACHE_LOG_DIR /var/log/apache2
+ENV APACHE_PID_FILE /var/run/apache2.pid
+ENV APACHE_RUN_DIR /var/run/apache2
+ENV APACHE_LOCK_DIR /var/lock/apache2
 
-RUN a2enmod expires proxy proxy_http rewrite
+RUN echo "mysql-server mysql-server/root_password password $DB_PASSWORD" | debconf-set-selections
+RUN echo "mysql-server mysql-server/root_password_again password $DB_PASSWORD" | debconf-set-selections
 
-VOLUME /var/www/html
+RUN apt-get update && apt-get install -y --force-yes \
+    mysql-server \
+    && rm -rf /var/lib/apt
 
-RUN curl -sSL -o /usr/local/bin/wp "https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar" \
-    && chmod +x /usr/local/bin/wp \
-    && mkdir -p /etc/wp-cli \
-    && chown www-data:www-data /etc/wp-cli
+RUN docker-php-ext-install mysqli
 
-RUN { \
-      echo 'path: /var/www/html'; \
-      echo 'url: project.dev'; \
-      echo 'apache_modules:'; \
-      echo '  - mod_rewrite'; \
-    } > /etc/wp-cli/config.yml
+# Add INSTALL.sh.
+COPY ./bin/install /var/www/bin/install
+RUN chmod +x /var/www/bin/install
 
-RUN echo "export WP_CLI_CONFIG_PATH=/etc/wp-cli/config.yml" > /etc/profile.d/wp-cli.sh
+# Download WP-CLI
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+RUN chmod +x wp-cli.phar
+RUN mv wp-cli.phar /usr/local/bin/wp
 
-RUN { \
-      echo '<IfModule mod_rewrite.c>'; \
-      echo '  RewriteEngine On'; \
-      echo '  RewriteBase /'; \
-      echo '  RewriteRule ^index\.php$ - [L]'; \
-      echo '  RewriteCond %{REQUEST_FILENAME} !-f'; \
-      echo '  RewriteCond %{REQUEST_FILENAME} !-d'; \
-      echo '  RewriteRule . /index.php [L]'; \
-      echo '</IfModule>'; \
-    } > /usr/src/wordpress/.htaccess
+# Apache configuration
+RUN mkdir -p $APACHE_RUN_DIR $APACHE_LOCK_DIR $APACHE_LOG_DIR
+RUN a2enmod rewrite
+RUN chown www-data:www-data -R /var/www/
 
-COPY docker-entrypoint.sh /usr/local/bin/
+EXPOSE 80

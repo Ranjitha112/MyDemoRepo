@@ -1,106 +1,109 @@
-# WordPress development on Docker [DEPRECATED]
+🇹🇭 [Thai](https://github.com/leanwp/container/blob/master/README-th.md)
 
-**NOTE:** This image is no longer updated. It was created when the official
-WordPress image was still young and had a number of issues that made local
-development frustrating. These issues have since been addressed.
+# Leanwp; Container
 
-It can still be useful as an example of how to extend the official image and
-especially as an example of how to install Xdebug.
+Leanwp; Container is a WordPress container built based on Docker system.
 
-In general, however, I recommend that you work instead from the official
-WordPress images, as shown in my [Docker Compose WordPress development][development]
-repo.
+## Requirement
 
----
+#### - Docker Compose
 
-## Environment variables
+The project requires Docker Compose installed in your machine.  
+Read how to: [Install Docker Compose](https://docs.docker.com/compose/install).
 
-- `WORDPRESS_ACTIVATE_PLUGINS`: A space-separated list of plugin paths relative
-  to `/var/www/html/wp-content/plugins/` that should be activated when the
-  container starts. If a plugin cannot be found, an install will be attempted
-  via `wp plugin install`.
+## Getting Started
 
-- `WORDPRESS_ACTIVATE_THEME` A theme path relative to `/var/www/html/wp-content/themes/`
-  that should be activated when the container starts. If the theme cannot be
-  found, an install will be attempted via `wp theme install`.
+### Download Leanwp; Container
 
-- `WORDPRESS_CONFIG_EXTRA`: Additional PHP to append to `wp-config.php`.
+Download Leanwp; Container's [the latest release](https://github.com/leanwp/container/archive/v0.1.0.zip).  
+Then extract file and place the extracted-folder at any place in a machine you want to operate Leanwp; Container.
 
-- `WORDPRESS_DB_HOST`: Default "mysql".
+### Start a container
 
-- `WORDPRESS_DB_NAME`: Default "wordpress".
+At the Leanwp; Container folder that you have extracted from the step above,  
+simply execute the following command at your terminal program to build a new container.
 
-- `WORDPRESS_DB_USER`: Default "root".
-
-- `WORDPRESS_DB_PASSWORD`: Default "".
-
-- `WORDPRESS_INSTALL_TYPE`: Default "single" (use "multisite" for Multisite install).
-
-- `WORDPRESS_PERMALINK_STRUCTURE`: Default "/%year%/%monthnum%/%postname%/"
-
-- `WORDPRESS_SITE_USER`: Default "wordpress"
-
-- `WORDPRESS_SITE_PASSWORD`: Default "wordpress"
-
-- `WORDPRESS_SITE_EMAIL`: Default "admin@example.com"
-
-- `WORDPRESS_SITE_TITLE`: Default "Project".
-
-- `WORDPRESS_SITE_URL`: Default "http://project.dev".
-
-
-## WP-CLI
-
-Assuming you are running in the context of Docker Compose:
-
-```sh
-docker-compose exec --user www-data wordpress wp [command]
+```bash
+docker-compose up
 ```
 
+Leanwp; Container will create a new folder, **`html`**, in the root folder. Then download and install WordPress in the `html` folder.
 
-## Running tests (PHPUnit)
+<img width="1552" alt="screen shot 2562-01-12 at 21 10 48" src="https://user-images.githubusercontent.com/2154669/51074195-96b3d800-16ae-11e9-8e52-57c2e0b1a0c3.png">
 
-Previous versions of this image provided PHPUnit inside the container. However,
-bundling a single version of PHPUnit was not very flexible. Additionally, users
-did not have the opportunity to install their own test dependencies. I now
-provide a(n optional) separate PHPUnit WordPress container that provides much
-greater flexibility and isolation. Please see the README of my
-[Docker Compose WordPress development][development] repo for instructions on how
-to set this up.
+### Configurations
 
+Leanwp; Container allows you to customize various of parameters at the [`.env`](https://github.com/leanwp/container/blob/master/.env) file when starting a new container.
+The configurations are explained at the below table:
 
-## Xdebug
+#### Database Credential
 
-Xdebug is installed but needs the IP of your local machine to connect to your
-local debugging client. Edit `.env` and populate the `DOCKER_LOCAL_IP`
-environment variable with your machine's (local network) IP address. The default
-`idekey` is `xdebug`.
+| Configuration Name  | Description                                                                                    | Default value |
+| ------------------- | ---------------------------------------------------------------------------------------------- | ------------- |
+| DB_HOST             | A DB server (please keep it as default unless you have plan to modify or separate a db server) | 127.0.0.1     |
+| DB_NAME             | Name of a database that will be installed by WordPress                                         | www           |
+| DB_USER             | Username of a database                                                                         | wwwadmin      |
+| DB_PASSWORD         | Password of a database                                                                         | wwwpassword   |
 
+#### WordPress Parameters
+
+| Configuration Name  | Description                                                                                             | Default value     |
+| ------------------- | ------------------------------------------------------------------------------------------------------- | ----------------- |
+| WP_VERSION          | A version of WordPress that you want to install (leave it empty for always install the latest version)  |                   |
+| WP_DEBUG            | Enable WordPress Debug mode                                                                             | true              |
+| WP_TITLE            | WordPress web title                                                                                     | Leanwp; Container |
+| WP_BASE_URL         | Base URL of a WordPress website (leave it as default unless you have any plan to replace it with DNS)   | http://127.0.0.1  |
+
+#### WordPress Admin Account
+
+| Configuration Name  | Description                | Default value        |
+| ------------------- | -------------------------- | -------------------- |
+| WP_ADMIN_USER       | WordPress Admin's username | admin                |
+| WP_ADMIN_PASSWORD   | WordPress Admin's password | password             |
+| WP_ADMIN_EMAIL      | WordPress Admin's email    | admin@leanwp.dev     |
+
+After making any change, you will need to rebuild the container's image by simply execute the following command:
+```bash
+docker-compose up --build
 ```
-XDEBUG_CONFIG: "remote_host=x.x.x.x idekey=xdebug"
-```
 
-You can enable profiling by appending additional instructions, e.g.:
+<img width="1008" alt="screen shot 2562-01-12 at 21 15 35" src="https://user-images.githubusercontent.com/2154669/51074240-3a9d8380-16af-11e9-9606-eecdcef87297.png">
 
-```
-XDEBUG_CONFIG: "remote_host=x.x.x.x idekey=xdebug profiler_enable=1 profiler_output_name=%R.%t.out"
-```
+## Contributing
 
-This will output cachegrind files (named after the request URI and timestamp) to
-`/tmp` inside the WordPress container.
+Thank you for your interest in contributing to the project.  
+Leanwp; Container is always welcoming for any thoughts or works from our community.  
+The following subjects are instructions for contributors who consider to submit changes, issues, and/or proposals.
 
+### Submit the changes
 
-## Seed `wp-content`
+You're all welcome to submit a pull request and make a change on the project.
 
-You can seed `wp-content` with files (e.g., an uploads folder) by mounting a
-volume at `/tmp/wordpress/init-wp-content`. Everything in that folder will be
-copied to your installation's `wp-content` folder.
+#### 1. Create a new issue ticket, as a proposal
 
+Before making any changes, please [create a new issue ticket](https://github.com/leanwp/container/issues/new) with a title: **"[Proposal] Your proposal title."**  
 
-## Provide trusted root certificates
+#### 2. Wait until the proposal got approved
 
-Mount a folder of trusted root certificates to `/tmp/certs`. Any files in that
-folder with a `.crt` extension will be added to the trusted certificate store.
+Once you submitted the proposal, it will be reviewed and approved.  
+Please wait until your proposal got approved before making any changes.  
+This is to avoid a situation where us, spending effort on a change but later on the idea or proposal is not match with the direction of community.
 
+#### 3. Submit the change as a pull request
 
-[development]: https://github.com/chriszarate/docker-compose-wordpress
+Once the proposal got approved, you may submit the change by creating a new pull request back to `master` branch with a title: **"[Proposal #issue-number] Your pull request title."**
+
+..  
+.  
+
+Learn more about submitting pull request here: [https://help.github.com/articles/about-pull-requests](https://help.github.com/articles/about-pull-requests)
+
+### Submit the issue
+
+Submit the issue through [GitHub's issue channel](https://github.com/leanwp/container/issues).
+
+Learn more about submitting an issue here: [https://guides.github.com/features/issues](https://guides.github.com/features/issues)
+
+## License
+
+Leanwp; Container is open-sourced software released under the [MIT License](https://opensource.org/licenses/MIT).
