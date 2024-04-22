@@ -17,7 +17,7 @@ ENV APACHE_LOCK_DIR /var/lock/apache2
 RUN echo "mysql-server mysql-server/root_password password $DB_PASSWORD" | debconf-set-selections
 RUN echo "mysql-server mysql-server/root_password_again password $DB_PASSWORD" | debconf-set-selections
 
-RUN apt-get update && apt-get install -y --allow \
+RUN apt-get update && apt-get install -y  \
     mariadb-server \
     && rm -rf /var/lib/apt
 
