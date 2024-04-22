@@ -5,17 +5,17 @@ phases:
     commands:
       - echo "Logging in to Amazon ECR..."
       - echo $AWS_DEFAULT_REGION
-      - aws ecr get-login-password --no-include-email --region ap-south-1 | docker login --username AWS --password-stdin 986849786625.dkr.ecr.ap-south-1.amazonaws.com 
+      - aws ecr get-login-password --no-include-email --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com 
   build:
     commands:
       - echo "Building Docker image..."
-      - docker build -t wordpress:v1
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG
       - echo "Tagging Docker image..."
-      - docker tag wordpress:v1 986849786625.dkr.ecr.ap-south-1.amazonaws.com:latest
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
     commands:
       - echo "Pushing Docker image to ECR..."
-      - docker push 986849786625.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
 
 artifacts:
   files: []
