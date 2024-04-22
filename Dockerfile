@@ -1,7 +1,6 @@
 FROM wordpress:4.9.6-php7.0-apache
 
-RUN apt-get update \
-    && apt-get install -y --force-yes --no-install-recommends less libmemcached-dev libxml2-dev libz-dev \
+RUN  apt-get install -y --force-yes --no-install-recommends less libmemcached-dev libxml2-dev libz-dev \
     && docker-php-ext-install soap \
     && rm -rf /var/lib/apt/lists/*
 
