@@ -24,7 +24,9 @@ phases:
       #- echo check config
       #- kubectl config view --minify
       #- echo check kubectl access
+      - mkdir -p $HOME/.kube
       - echo "$KUBECONFIG_DATA" > $HOME/.kube/config
+      - export KUBECONFIG=$HOME/.kube/config
       - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name cicd-demo
   build:
     commands:
