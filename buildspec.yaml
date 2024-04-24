@@ -20,14 +20,13 @@ phases:
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
       - TAG=$(date +%Y-%m-%d.%H.%M.%S)-$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)
       # Configure kubectl to use your EKS cluster
-      #- aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name cicd-demo
       #- echo check config
       #- kubectl config view --minify
       #- echo check kubectl access
       - mkdir -p $HOME/.kube
       - echo "$KUBECONFIG_DATA" > $HOME/.kube/config
       - export KUBECONFIG=$HOME/.kube/config
-      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name cicd-demo
+      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name mydemocluster
       - kubectl config view
 
   build:
