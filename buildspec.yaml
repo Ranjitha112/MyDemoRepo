@@ -1,19 +1,24 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - echo Installing app dependencies...
+      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/kubectl   
+      - chmod +x ./kubectl
+      - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+      - echo "alias shopt='/usr/bin/shopt'" >> ~/.zshrc
+      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.zshrc
+      - . ~/.zshrc
+      - echo 'Check kubectl version'
+      - kubectl version --client
+  
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
       - echo $AWS_DEFAULT_REGION
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
       - TAG=$(date +%Y-%m-%d.%H.%M.%S)-$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)
-      # Install kubectl
-      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
-      - chmod +x ./kubectl
-      - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
-      - echo "alias shopt='/usr/bin/shopt'" >> ~/.zshrc
-      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.zshrc
-      - . ~/.zshrc
       # Configure kubectl to use your EKS cluster
       - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name cicd-demo
       - echo check config
