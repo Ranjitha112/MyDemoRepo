@@ -7,9 +7,9 @@ phases:
       - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/kubectl   
       - chmod +x ./kubectl
       - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
-      - echo "alias shopt='/usr/bin/shopt'" >> ~/.zshrc
-      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.zshrc
-      - . ~/.zshrc
+      - echo "alias shopt='/usr/bin/shopt'" >> ~/.bashrc
+      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+      - source ~/.bashrc
       - echo 'Check kubectl version'
       - kubectl version --client
   
@@ -28,7 +28,7 @@ phases:
       - echo "$KUBECONFIG_DATA" > $HOME/.kube/config
       - export KUBECONFIG=$HOME/.kube/config
       - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name cicd-demo
-      - kubectl config view --minify
+      - kubectl config view
 
   build:
     commands:
