@@ -6,6 +6,7 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - echo $AWS_DEFAULT_REGION
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+      - TAG=$(date +%Y-%m-%d.%H.%M.%S)-$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)
       # Install kubectl
       - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
       - chmod +x ./kubectl
@@ -17,12 +18,17 @@ phases:
       - echo "Building Docker image..."
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - echo "Tagging Docker image..."
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      #- docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$TAG
   post_build:
     commands:
       - echo "Pushing Docker image to ECR..."
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
-      - kubectl set image deployment/wordpress-deployment wordpress-container=$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"$IMAGE_REPO_NAME","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG > imagedefinitions.json
+      - sed -i 's@CONTAINER_IMAGE@'"$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$TAG"'@' deployment.yaml
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
 
 artifacts:
-  files: []
+    files: imagedefinitions.json
